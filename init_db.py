@@ -1,24 +1,18 @@
-import psycopg2
+from pathlib import Path
 
-# Конфигурация БД
-DB_CONFIG = {
-    'dbname': 'weather',
-    'user': 'postgres',
-    'password': 'твой_пароль',
-    'host': 'localhost',
-    'port': '5432'
-}
+from app import BASE_DIR, Base, engine, seed_database
 
-# Читаем SQL файл
-with open('weather_schema.sql', 'r', encoding='utf-8') as f:
-    sql_script = f.read()
 
-# Подключаемся и выполняем
-conn = psycopg2.connect(**DB_CONFIG)
-cursor = conn.cursor()
-cursor.execute(sql_script)
-conn.commit()
-cursor.close()
-conn.close()
+def recreate_database() -> None:
+    db_file = BASE_DIR / "weather.db"
 
-print("✅ База данных инициализирована!")
+    if db_file.exists():
+        db_file.unlink()
+
+    Base.metadata.create_all(bind=engine)
+    seed_database()
+
+
+if __name__ == "__main__":
+    recreate_database()
+    print(f"База данных инициализирована: {Path(BASE_DIR / 'weather.db')}")
